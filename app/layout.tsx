@@ -1,22 +1,22 @@
-'use client'
+import AuthProvider from './providers'
+import { getServerSession } from 'next-auth/next'
+import { Inter } from 'next/font/google'
 
-import { SessionProvider } from 'next-auth/react'
-import { Session } from 'next-auth'
+const inter = Inter({ subsets: ['latin'] })
 
-
-export default function AuthProvider({ 
+export default async function RootLayout({
   children,
-  session 
-}: { 
+}: {
   children: React.ReactNode
-  session: Session | null
 }) {
+  const session = await getServerSession()
+
   return (
     <html lang="zh">
-      <body>
-        <SessionProvider session={session}>
+      <body className={inter.className}>
+        <AuthProvider session={session}>
           {children}
-        </SessionProvider>
+        </AuthProvider>
       </body>
     </html>
   )
