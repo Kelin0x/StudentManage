@@ -31,16 +31,44 @@ interface Course {
   teacher: string
 }
 
+interface QueryResult {
+  statistics: {
+    average?: number;
+    highest?: number;
+    lowest?: number;
+    count?: number;
+  };
+  scores: Array<{
+    id: number;
+    score: number;
+    course?: {
+      courseId: string;
+      courseName: string;
+      teacher: string;
+    };
+    student?: {
+      studentId: string;
+      name: string;
+      major: string;
+    };
+  }>;
+  studentInfo?: {
+    name: string;
+    studentId: string;
+    major: string;
+  };
+}
+
 export default function Home() {
   const [students, setStudents] = useState<Student[]>([])
-  const [queryResults, setQueryResults] = useState<any>(null)
+  const [queryResults, setQueryResults] = useState<QueryResult | null>(null)
   const [queryType, setQueryType] = useState<'student' | 'course'>('student')
   const { data: session } = useSession()
   const { canViewAllScores, isStudent } = useAuthorization()
 
   useEffect(() => {
     fetchStudents()
-  }, [])
+  }, [session?.user?.username, isStudent])
 
   const fetchStudents = async () => {
     try {

@@ -14,7 +14,8 @@ export async function GET() {
       }
     })
     return NextResponse.json(students)
-  } catch (error) {
+  } catch (err) {
+    console.error('Error fetching students:', err)
     return NextResponse.json({ error: '获取学生信息失败' }, { status: 500 })
   }
 }

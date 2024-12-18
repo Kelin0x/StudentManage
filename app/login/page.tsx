@@ -32,7 +32,8 @@ export default function Login() {
         router.push('/')
         router.refresh()
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Login error:', err)
       setError('登录失败，请重试')
     } finally {
       setLoading(false)
@@ -74,4 +75,4 @@ export default function Login() {
       </div>
     </div>
   )
-}
+} 
