@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id         Int      @id @default(autoincrement())
+  studentId  String   @unique // 学号
+  name       String
+  gender     String
+  major      String
+  grade      Int
+  scores     Score[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Course {
+  id           Int      @id @default(autoincrement())
+  courseId     String   @unique // 课程编号
+  courseName   String
+  teacher      String
+  scores       Score[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Score {
+  id        Int      @id @default(autoincrement())
+  score     Float
+  student   Student  @relation(fields: [studentId], references: [studentId])
+  studentId String
+  course    Course   @relation(fields: [courseId], references: [courseId])
+  courseId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, courseId])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  role      Role     @default(TEACHER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+} 

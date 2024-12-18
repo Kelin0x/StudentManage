@@ -1,101 +1,225 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import styles from './page.module.css'
+import ScoreQuery from './components/ScoreQuery'
+import ScoreStatistics from './components/ScoreStatistics'
+import { useSession } from 'next-auth/react'
+import { useAuthorization } from '@/hooks/useAuthorization'
+
+interface Student {
+  id: number
+  studentId: string
+  name: string
+  gender: string
+  major: string
+  grade: number
+  scores: Score[]
+}
+
+interface Score {
+  id: number
+  score: number
+  courseId: string
+  course: Course
+}
+
+interface Course {
+  id: number
+  courseId: string
+  courseName: string
+  teacher: string
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [students, setStudents] = useState<Student[]>([])
+  const [queryResults, setQueryResults] = useState<any>(null)
+  const [queryType, setQueryType] = useState<'student' | 'course'>('student')
+  const { data: session } = useSession()
+  const { canViewAllScores, isStudent } = useAuthorization()
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    fetchStudents()
+  }, [])
+
+  const fetchStudents = async () => {
+    try {
+      const response = await fetch('/api/students')
+      const data = await response.json()
+      
+      if (isStudent) {
+        setStudents(data.filter((student: Student) => 
+          student.studentId === session?.user?.username
+        ))
+      } else {
+        setStudents(data)
+      }
+    } catch (error) {
+      console.error('获取学生数据失败:', error)
+    }
+  }
+
+  const handleSearch = async (type: string, value: string) => {
+    try {
+      if (session?.user?.role === 'student' && 
+          (type === 'student' && value !== session?.user?.username)) {
+        console.error('无权限查看其他学生信息');
+        return;
+      }
+
+      if (!value.trim()) {
+        console.error('请输入查询值');
+        return;
+      }
+
+      const response = await fetch(`/api/scores?${type}Id=${encodeURIComponent(value)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new TypeError("返回的数据不是 JSON 格式!");
+      }
+
+      const data = await response.json();
+      setQueryResults(data);
+      setQueryType(type as 'student' | 'course');
+      
+    } catch (error) {
+      console.error('查询出错:', error);
+      setQueryResults(null);
+    }
+  };
+
+  return (
+    <main className={styles.main}>
+      {!session ? (
+        <div className={styles.loginPrompt}>
+          <h2>欢迎使用学生成绩管理系统</h2>
+          <p>请登录以访问完整功能</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+      ) : (
+        <>
+          <header className={styles.header}>
+            <div className={styles.titleSection}>
+              <h1>学生成绩管理系统</h1>
+              <div className={styles.userInfo}>
+                {session.user?.name}
+                <span className={styles.role}>{session.user?.role}</span>
+              </div>
+            </div>
+          </header>
+
+          <div className={styles.content}>
+            {session.user?.role !== 'student' && canViewAllScores && (
+              <section className={styles.querySection}>
+                <ScoreQuery onSearch={handleSearch} />
+              </section>
+            )}
+
+            <section className={styles.resultsSection}>
+              {queryResults && (
+                <div className={styles.queryResults}>
+                  <ScoreStatistics 
+                    statistics={queryResults.statistics}
+                    type={queryType}
+                    studentInfo={queryResults.studentInfo}
+                  />
+                  
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          {queryType === 'student' ? (
+                            <>
+                              <th>课程编号</th>
+                              <th>课程名称</th>
+                              <th>任课教师</th>
+                            </>
+                          ) : (
+                            <>
+                              <th>学号</th>
+                              <th>姓名</th>
+                              <th>专业</th>
+                            </>
+                          )}
+                          <th>成绩</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {queryResults.scores.map((score: any) => (
+                          <tr key={score.id}>
+                            {queryType === 'student' ? (
+                              <>
+                                <td>{score.course.courseId}</td>
+                                <td>{score.course.courseName}</td>
+                                <td>{score.course.teacher}</td>
+                              </>
+                            ) : (
+                              <>
+                                <td>{score.student.studentId}</td>
+                                <td>{score.student.name}</td>
+                                <td>{score.student.major}</td>
+                              </>
+                            )}
+                            <td>{score.score}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.studentsSection}>
+                <h2>学生信息</h2>
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>专业</th>
+                        <th>年级</th>
+                        <th>课程成绩</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students
+                        .filter(student => 
+                          session.user?.role === 'STUDENT' 
+                            ? student.name === session.user.username
+                            : true
+                        )
+                        .map((student) => (
+                          <tr key={student.id}>
+                            <td>{student.studentId}</td>
+                            <td>{student.name}</td>
+                            <td>{student.gender}</td>
+                            <td>{student.major}</td>
+                            <td>{student.grade}</td>
+                            <td className={styles.scoresList}>
+                              {student.scores.map((score) => (
+                                <div key={score.id} className={styles.scoreItem}>
+                                  {score.course.courseName}: {score.score}分
+                                </div>
+                              ))}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+            
+              </section>
+          </div>
+        </>
+      )}
+    </main>
+  )
+} 

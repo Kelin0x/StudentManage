@@ -1,0 +1,35 @@
+.queryForm {
+  margin: 2rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.queryType {
+  margin-bottom: 1rem;
+}
+
+.queryType label {
+  margin-right: 2rem;
+}
+
+.queryInput {
+  padding: 0.5rem;
+  margin-right: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 200px;
+}
+
+.queryButton {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.queryButton:hover {
+  background: #0056b3;
+} 
