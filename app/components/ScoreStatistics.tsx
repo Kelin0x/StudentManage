@@ -4,17 +4,17 @@ import styles from './ScoreStatistics.module.css'
 
 interface Statistics {
   average: string
-  highest: number
-  lowest: number
-  totalCourses?: number
-  totalStudents?: number
-  passRate?: string
+  highest: string
+  lowest: string
+  count: string
+  totalCourses: string
+  totalStudents: string
+  passRate: string
 }
 
 interface StudentInfo {
-  id: string
   name: string
-  class: string
+  studentId: string
   major: string
 }
 
@@ -33,15 +33,11 @@ export default function ScoreStatistics({ statistics, type, studentInfo }: Score
           <div className={styles.cardGrid}>
             <div className={styles.card}>
               <div className={styles.cardLabel}>学号</div>
-              <div className={`${styles.cardValue} ${styles.id}`}>{studentInfo.id}</div>
+              <div className={`${styles.cardValue} ${styles.id}`}>{studentInfo.studentId}</div>
             </div>
             <div className={styles.card}>
               <div className={styles.cardLabel}>姓名</div>
               <div className={`${styles.cardValue} ${styles.name}`}>{studentInfo.name}</div>
-            </div>
-            <div className={styles.card}>
-              <div className={styles.cardLabel}>班级</div>
-              <div className={`${styles.cardValue} ${styles.class}`}>{studentInfo.class}</div>
             </div>
             <div className={styles.card}>
               <div className={styles.cardLabel}>专业</div>
