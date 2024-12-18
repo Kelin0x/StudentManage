@@ -38,6 +38,7 @@ interface QueryResult {
     highest?: number;
     lowest?: number;
     count?: number;
+    passRate?: string;
   };
   scores: Array<{
     id: number;
@@ -187,9 +188,11 @@ export default function Home() {
                       highest: queryResults.statistics.highest?.toString() ?? '',
                       lowest: queryResults.statistics.lowest?.toString() ?? '',
                       count: queryResults.statistics.count?.toString() ?? '',
-                      totalCourses: queryResults.statistics.count?.toString() ?? '',
-                      totalStudents: queryResults.statistics.count?.toString() ?? '',
-                      passRate: '100%'
+                      totalCourses: queryResults.scores.length.toString(),
+                      totalStudents: queryType === 'course' ? 
+                        queryResults.statistics.count?.toString() ?? '' :  // 课程查询时使用 count 作为总人数
+                        queryResults.statistics.count?.toString() ?? '',
+                      passRate: queryResults.statistics.passRate?.toString() ?? '0%'
                     }}
                     type={queryType}
                     studentInfo={queryResults.studentInfo}

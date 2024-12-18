@@ -32,10 +32,6 @@ export default function ScoreStatistics({ statistics, type, studentInfo }: Score
           <h3 className={styles.sectionTitle}>个人信息</h3>
           <div className={styles.cardGrid}>
             <div className={styles.card}>
-              <div className={styles.cardLabel}>学号</div>
-              <div className={`${styles.cardValue} ${styles.id}`}>{studentInfo.studentId}</div>
-            </div>
-            <div className={styles.card}>
               <div className={styles.cardLabel}>姓名</div>
               <div className={`${styles.cardValue} ${styles.name}`}>{studentInfo.name}</div>
             </div>

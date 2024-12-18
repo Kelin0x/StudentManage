@@ -7,56 +7,41 @@ export async function GET(request: Request) {
     const studentId = searchParams.get('studentId')
     const courseId = searchParams.get('courseId')
 
-    // 课程查询
     if (courseId) {
-      const course = await prisma.course.findUnique({
+      // 查询课程成绩
+      const scores = await prisma.score.findMany({
         where: { courseId },
         include: {
-          scores: {
-            include: {
-              student: true
+          student: {
+            select: {
+              studentId: true,
+              name: true,
+              major: true
             }
           }
         }
       })
 
-      if (!course) {
-        return NextResponse.json({
-          error: '未找到该课程',
-          scores: [],
-          statistics: {
-            average: '0',
-            highest: 0,
-            lowest: 0,
-            totalStudents: 0,
-            passRate: '0%'
-          }
-        })
-      }
-
-      const scores = course.scores
-      const totalStudents = scores.length
-      const passCount = scores.filter(score => score.score >= 60).length
-      
-      const statistics = {
-        average: totalStudents ? (scores.reduce((sum, s) => sum + s.score, 0) / totalStudents).toFixed(1) : '0',
-        highest: totalStudents ? Math.max(...scores.map(s => s.score)) : 0,
-        lowest: totalStudents ? Math.min(...scores.map(s => s.score)) : 0,
-        totalStudents,
-        passRate: totalStudents ? `${((passCount / totalStudents) * 100).toFixed(1)}%` : '0%'
-      }
+      // 计算统计数据
+      const scoreValues = scores.map(s => s.score)
+      const totalStudents = scores.length  // 总人数就是成绩记录的数量
+      const passCount = scores.filter(s => s.score >= 60).length  // 及格人数
 
       return NextResponse.json({
+        statistics: {
+          average: scoreValues.length > 0 ? 
+            (scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length).toFixed(1) : 0,
+          highest: Math.max(...(scoreValues.length > 0 ? scoreValues : [0])),
+          lowest: Math.min(...(scoreValues.length > 0 ? scoreValues : [0])),
+          count: totalStudents,  // 使用总人数
+          passRate: totalStudents > 0 ? 
+            ((passCount / totalStudents) * 100).toFixed(1) + '%' : '0%'
+        },
         scores: scores.map(score => ({
           id: score.id,
           score: score.score,
-          student: {
-            studentId: score.student.studentId,
-            name: score.student.name,
-            major: score.student.major
-          }
-        })),
-        statistics
+          student: score.student
+        }))
       })
     }
 
@@ -135,17 +120,7 @@ export async function GET(request: Request) {
     })
 
   } catch (error) {
-    console.error('API错误:', error)
-    return NextResponse.json({
-      error: '服务器内部错误',
-      scores: [],
-      statistics: {
-        average: '0',
-        highest: 0,
-        lowest: 0,
-        totalCourses: 0,
-        passRate: '0%'
-      }
-    }, { status: 500 })
+    console.error('Error fetching scores:', error)
+    return NextResponse.json({ error: '获取成绩失败' }, { status: 500 })
   }
 }
