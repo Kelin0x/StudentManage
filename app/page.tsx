@@ -95,9 +95,6 @@ export default function Home() {
     fetchUserRole()
   }, [session?.user?.username, session?.user?.name])
 
-  const canViewAllScores = userRole === Role.ADMIN || userRole === Role.TEACHER
-  const isStudent = userRole === Role.STUDENT
-
   const fetchStudents = useCallback(async () => {
     try {
       const params = new URLSearchParams()
