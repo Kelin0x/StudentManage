@@ -7,4 +7,4 @@ const nextConfig = {
   basePath: '/sms',
 }
 
-module.exports = nextConfig
+export default nextConfig 

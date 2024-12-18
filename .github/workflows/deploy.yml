@@ -2,8 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "master" ]  # 当推送到 master 分支时触发
-  workflow_dispatch:      # 允许手动触发
+    branches: [ "master" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,6 +13,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      NEXTAUTH_URL: https://kelin0x.github.io/sms
     steps:
       - uses: actions/checkout@v4
       
@@ -41,4 +45,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2 
+        uses: actions/deploy-pages@v2
