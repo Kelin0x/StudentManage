@@ -5,7 +5,8 @@ import styles from './page.module.css'
 import ScoreQuery from './components/ScoreQuery'
 import ScoreStatistics from './components/ScoreStatistics'
 import { useSession } from 'next-auth/react'
-import { useAuthorization } from '@/hooks/useAuthorization'
+import type { Session } from 'next-auth'
+import { Role } from '@prisma/client'
 
 interface Student {
   id: number
@@ -63,25 +64,53 @@ export default function Home() {
   const [students, setStudents] = useState<Student[]>([])
   const [queryResults, setQueryResults] = useState<QueryResult | null>(null)
   const [queryType, setQueryType] = useState<'student' | 'course'>('student')
-  const { data: session } = useSession()
-  const { canViewAllScores, isStudent } = useAuthorization()
+  const { data: session } = useSession() as { data: Session | null }
+  const [userRole, setUserRole] = useState<Role | null>(null)
+
+  console.log('Session user:', {
+    id: session?.user?.id,
+    name: session?.user?.name,
+    role: session?.user?.role,
+    username: session?.user?.username,
+    token: session
+  })
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (session?.user?.username || session?.user?.name) {
+        try {
+          const queryParam = session.user.username || session.user.name
+          const response = await fetch(`/api/users?username=${queryParam}`)
+          const data = await response.json()
+          if (data.role) {
+            setUserRole(data.role)
+            console.log('获取到用户角色:', data.role)
+          }
+        } catch (error) {
+          console.error('获取用户角色失败:', error)
+        }
+      }
+    }
+
+    fetchUserRole()
+  }, [session?.user?.username, session?.user?.name])
+
+  const canViewAllScores = userRole === Role.ADMIN || userRole === Role.TEACHER
+  const isStudent = userRole === Role.STUDENT
 
   const fetchStudents = useCallback(async () => {
     try {
-      const response = await fetch('/api/students')
+      const params = new URLSearchParams()
+      if (userRole) params.append('role', userRole)
+      if (session?.user?.username) params.append('username', session.user.username)
+
+      const response = await fetch(`/api/students?${params.toString()}`)
       const data = await response.json()
-      
-      if (isStudent) {
-        setStudents(data.filter((student: Student) => 
-          student.studentId === session?.user?.username
-        ))
-      } else {
-        setStudents(data)
-      }
+      setStudents(data)
     } catch (error) {
       console.error('获取学生数据失败:', error)
     }
-  }, [isStudent, session?.user?.username])
+  }, [userRole, session?.user?.username])
 
   useEffect(() => {
     fetchStudents()
@@ -89,7 +118,7 @@ export default function Home() {
 
   const handleSearch = async (type: string, value: string) => {
     try {
-      if (session?.user?.role === 'student' && 
+      if (userRole === Role.STUDENT && 
           (type === 'student' && value !== session?.user?.username)) {
         console.error('无权限查看其他学生信息');
         return;
@@ -135,13 +164,18 @@ export default function Home() {
               <h1>学生成绩管理系统</h1>
               <div className={styles.userInfo}>
                 {session.user?.name}
-                <span className={styles.role}>{session.user?.role}</span>
+                <span className={styles.role}>{userRole}</span>
+                {process.env.NODE_ENV === 'development' && (
+                  <pre style={{ display: 'none' }}>
+                    {JSON.stringify(session?.user, null, 2)}
+                  </pre>
+                )}
               </div>
             </div>
           </header>
 
           <div className={styles.content}>
-            {session.user?.role !== 'student' && canViewAllScores && (
+            {(userRole === Role.ADMIN || userRole === Role.TEACHER) && (
               <section className={styles.querySection}>
                 <ScoreQuery onSearch={handleSearch} />
               </section>
@@ -224,13 +258,30 @@ export default function Home() {
                       </tr>
                     </thead>
                     <tbody>
-                      {students
-                        .filter(student => 
-                          session.user?.role === 'STUDENT' 
-                            ? student.name === session.user.username
-                            : true
-                        )
-                        .map((student) => (
+                      {/* 根据角色显示不同的数据 */}
+                      {userRole === Role.STUDENT ? (
+                        // 学生只显示自己的信息
+                        students
+                          .filter(student => student.name === session?.user?.name)
+                          .map((student) => (
+                            <tr key={student.id}>
+                              <td>{student.studentId}</td>
+                              <td>{student.name}</td>
+                              <td>{student.gender}</td>
+                              <td>{student.major}</td>
+                              <td>{student.grade}</td>
+                              <td className={styles.scoresList}>
+                                {student.scores.map((score) => (
+                                  <div key={score.id} className={styles.scoreItem}>
+                                    {score.course.courseName}: {score.score}分
+                                  </div>
+                                ))}
+                              </td>
+                            </tr>
+                          ))
+                      ) : (
+                        // 教师和管理员显示所有学生信息
+                        students.map((student) => (
                           <tr key={student.id}>
                             <td>{student.studentId}</td>
                             <td>{student.name}</td>
@@ -245,7 +296,8 @@ export default function Home() {
                               ))}
                             </td>
                           </tr>
-                        ))}
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

@@ -2,8 +2,7 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { JWT } from 'next-auth/jwt'
-import type { Session } from 'next-auth'
+import { Role } from "@prisma/client"
 
 const handler = NextAuth({
   providers: [
@@ -30,7 +29,7 @@ const handler = NextAuth({
           })
 
           console.log('数据库查询结果:', user ? '用户存在' : '用户不存在') // 调试日志
-
+          console.log(bcrypt.hashSync(credentials.password, 10)) // 试日志
           if (!user) {
             console.log('用户不存在')
             throw new Error('用户名或密码错误')
@@ -54,8 +53,9 @@ const handler = NextAuth({
           return {
             id: user.id.toString(),
             name: user.name,
-            role: user.role,
-            username: user.username
+            role: user.role as Role,
+            username: user.username,
+            email: user.role
           }
         } catch (error) {
           console.error('认证过程出错:', error) // 错误日志
@@ -65,26 +65,41 @@ const handler = NextAuth({
     })
   ],
   callbacks: {
-    jwt: ({ token, user }) => {
+    async jwt({ token, user }) {
       if (user) {
-        token.role = user.role
-        token.username = user.username
+        // 登录时，将所有信息存入 token
+        return {
+          ...token,
+          id: user.id,
+          role: user.role,
+          username: user.username,
+          name: user.name
+        }
       }
+      // 刷新时，token 中已经有这些信息
       return token
     },
-    session: ({ session, token }: { session: Session, token: JWT }): Session => {
-      if (session?.user) {
-        session.user.role = token.role as string | undefined
-        session.user.username = token.username as string | undefined
+    async session({ session, token }) {
+      // 每次刷新都需要从 token 重新构建 session
+      return {
+        ...session,
+        user: {
+          id: token.id as string,
+          name: token.name as string,
+          role: token.role as Role,
+          username: token.username as string
+        }
       }
-      return session
     }
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 天
   },
   pages: {
     signIn: '/login',
     error: '/login',
   },
-  debug: true, // 开启调试模式
   secret: process.env.NEXTAUTH_SECRET,
 })
 
