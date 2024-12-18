@@ -72,7 +72,7 @@ const handler = NextAuth({
       }
       return token
     },
-    session: ({ session, token }: { session: any, token: JWT }) => {
+    session: ({ session, token }: { session: Session, token: JWT }): Session => {
       if (session?.user) {
         session.user.role = token.role
         session.user.username = token.username
