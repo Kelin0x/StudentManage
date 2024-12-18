@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import styles from './page.module.css'
 import ScoreQuery from './components/ScoreQuery'
 import ScoreStatistics from './components/ScoreStatistics'
@@ -66,11 +66,7 @@ export default function Home() {
   const { data: session } = useSession()
   const { canViewAllScores, isStudent } = useAuthorization()
 
-  useEffect(() => {
-    fetchStudents()
-  }, [session?.user?.username, isStudent])
-
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       const response = await fetch('/api/students')
       const data = await response.json()
@@ -85,7 +81,11 @@ export default function Home() {
     } catch (error) {
       console.error('获取学生数据失败:', error)
     }
-  }
+  }, [isStudent, session?.user?.username])
+
+  useEffect(() => {
+    fetchStudents()
+  }, [fetchStudents])
 
   const handleSearch = async (type: string, value: string) => {
     try {
@@ -177,7 +177,7 @@ export default function Home() {
                         </tr>
                       </thead>
                       <tbody>
-                        {queryResults.scores.map((score: any) => (
+                        {queryResults.scores.map((score) => (
                           <tr key={score.id}>
                             {queryType === 'student' ? (
                               <>
