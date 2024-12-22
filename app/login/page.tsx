@@ -1,14 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import styles from './login.module.css'
+import '../globals.css'
 
 export default function Login() {
   const router = useRouter()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -40,38 +47,77 @@ export default function Login() {
     }
   }
 
+  if (!mounted) return null
+
   return (
-    <div className={styles.container}>
-      <div className={styles.loginBox}>
-        <h1>学生成绩管理系统</h1>
-        <form onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label htmlFor="username">用户名</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              required
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="password">密码</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-            />
-          </div>
-          {error && <div className={styles.error}>{error}</div>}
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={loading}
-          >
-            {loading ? '登录中...' : '登录'}
-          </button>
-        </form>
+    <div className={styles.login_pageContainer}>
+      <div className={styles.login_networkImageContainer}>
+        <Image
+          src="/image/network-background.jpg"
+          alt="Network Background"
+          width={1200}
+          height={675}
+          priority
+          className={styles.login_networkImage}
+        />
+      </div>
+
+      <div className={styles.login_orbs}>
+        <div className={styles.login_orb}></div>
+        <div className={styles.login_orb}></div>
+        <div className={styles.login_orb}></div>
+        <div className={styles.login_orb}></div>
+        <div className={styles.login_orb}></div>
+      </div>
+
+      <div className={styles.login_floatingIcons}>
+        <div className={styles.login_icon}>📚</div>
+        <div className={styles.login_icon}>📊</div>
+        <div className={styles.login_icon}>🎓</div>
+        <div className={styles.login_icon}>✏️</div>
+      </div>
+
+      <div className={styles.login_loginContainer}>
+        <div className={styles.login_loginCard}>
+          <h1>成绩管理系统</h1>
+          <p className={styles.login_subtitle}>连接教育，共创未来</p>
+          
+          <form onSubmit={handleSubmit} className={styles.login_loginForm}>
+            <div className={styles.login_inputGroup}>
+              <label htmlFor="username">用户名</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="请输入用户名"
+                required
+                autoComplete="username"
+              />
+            </div>
+            
+            <div className={styles.login_inputGroup}>
+              <label htmlFor="password">密码</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="请输入密码"
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            
+            {error && <div className={styles.login_error}>{error}</div>}
+            
+            <button
+              type="submit"
+              className={styles.login_loginButton}
+              disabled={loading}
+            >
+              {loading ? '登录中...' : '登录'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

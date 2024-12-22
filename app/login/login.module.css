@@ -1,111 +1,272 @@
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* 页面容器 */
+.login_pageContainer {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 50%, #93c5fd 100%);
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-.loginBox {
-  background: white;
-  padding: 2.5rem 3rem;
+/* 背景图片容器 */
+.login_networkImageContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 1200px;
+  aspect-ratio: 16/9;
+  z-index: 1;
+}
+
+.login_networkImage {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  opacity: 0.15;
+}
+
+/* 浮动光晕球效果 */
+.login_orbs {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.login_orb {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(59, 130, 246, 0.05) 30%,
+    rgba(59, 130, 246, 0) 70%
+  );
+  filter: blur(10px);
+  animation: orbFloat 20s infinite;
+}
+
+.login_orb:nth-child(1) {
+  top: 10%;
+  left: 20%;
+  width: 180px;
+  height: 180px;
+  animation-duration: 25s;
+}
+
+.login_orb:nth-child(2) {
+  top: 60%;
+  left: 70%;
+  width: 120px;
+  height: 120px;
+  animation-duration: 30s;
+  animation-delay: -5s;
+}
+
+.login_orb:nth-child(3) {
+  top: 30%;
+  right: 20%;
+  width: 160px;
+  height: 160px;
+  animation-duration: 28s;
+  animation-delay: -10s;
+}
+
+.login_orb:nth-child(4) {
+  bottom: 20%;
+  left: 30%;
+  width: 140px;
+  height: 140px;
+  animation-duration: 22s;
+  animation-delay: -7s;
+}
+
+.login_orb:nth-child(5) {
+  top: 40%;
+  left: 40%;
+  width: 200px;
+  height: 200px;
+  animation-duration: 35s;
+  animation-delay: -12s;
+}
+
+/* 浮动图标 */
+.login_floatingIcons {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.login_icon {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: iconFloat 15s linear infinite;
+}
+
+/* 登录表单容器 */
+.login_loginContainer {
+  position: relative;
+  z-index: 3;
   width: 100%;
-  max-width: 420px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  max-width: 400px;
+  margin: 0 20px;
 }
 
-.loginBox:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+.login_loginCard {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.loginBox h1 {
+.login_loginCard h1 {
+  color: #1e3a8a;
   text-align: center;
-  margin-bottom: 2.5rem;
-  font-size: 1.8rem;
-  color: #333;
+  margin-bottom: 8px;
+  font-size: 24px;
 }
 
-.formGroup {
-  margin-bottom: 1.5rem;
+.login_subtitle {
+  color: #3b82f6;
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 16px;
 }
 
-.formGroup label {
-  display: block;
-  margin-bottom: 0.6rem;
+/* 表单样式 */
+.login_loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login_inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login_inputGroup label {
+  color: #1e3a8a;
+  font-size: 14px;
   font-weight: 500;
-  color: #555;
 }
 
-.formGroup input {
-  width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
+.login_inputGroup input {
+  padding: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #1e3a8a;
+  font-size: 16px;
+  transition: all 0.3s ease;
 }
 
-.formGroup input:focus {
-  border-color: #007bff;
+.login_inputGroup input:focus {
   outline: none;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.error {
-  color: #e74c3c;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  font-weight: 500;
-}
-
-.submitButton {
-  width: 100%;
-  padding: 0.8rem;
-  background: #007bff;
-  color: white;
+.login_loginButton {
+  margin-top: 8px;
+  padding: 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 1.1rem;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
 }
 
-.submitButton:disabled {
-  background: #a0c5f8;
+.login_loginButton:hover {
+  background: #2563eb;
+}
+
+.login_loginButton:disabled {
+  background: rgba(59, 130, 246, 0.5);
   cursor: not-allowed;
 }
 
-.submitButton:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-2px);
+.login_error {
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
 }
 
-.additionalOptions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
+/* 动画定义 */
+@keyframes orbFloat {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(50px, -30px) scale(1.1);
+  }
+  50% {
+    transform: translate(0, -60px) scale(1);
+  }
+  75% {
+    transform: translate(-50px, -30px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
-.additionalOptions a {
-  color: #007bff;
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: color 0.3s ease;
+@keyframes iconFloat {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(30px, -20px) rotate(90deg);
+  }
+  50% {
+    transform: translate(0, -40px) rotate(180deg);
+  }
+  75% {
+    transform: translate(-30px, -20px) rotate(270deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg);
+  }
 }
 
-.additionalOptions a:hover {
-  color: #0056b3;
-}
-
-.rememberMe {
-  display: flex;
-  align-items: center;
-}
-
-.rememberMe input {
-  margin-right: 0.5rem;
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .login_loginCard {
+    padding: 30px 20px;
+  }
+  
+  .login_loginContainer {
+    margin: 0 16px;
+  }
 }

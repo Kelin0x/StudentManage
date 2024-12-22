@@ -14,18 +14,32 @@
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* 重置默认样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* 将所有样式移动到这里 */
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* overflow-y: hidden; */
+}
+
+html {
+  min-height: 100vh;
+}
+
 /* 基础布局 */
 .main {
   min-height: 100vh;
   display: flex;
   background: #f0f2f5;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 /* 左侧导航栏 */
@@ -37,6 +51,7 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
+  margin: 0;
   box-shadow: 2px 0 8px 0 rgba(29,35,41,.05);
 }
 
