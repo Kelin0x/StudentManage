@@ -5,10 +5,11 @@ import styles from './ScoreQuery.module.css'
 
 interface ScoreQueryProps {
   onSearch: (type: string, value: string) => void
+  queryType: 'student' | 'course'
+  onQueryTypeChange: (type: 'student' | 'course') => void
 }
 
-export default function ScoreQuery({ onSearch }: ScoreQueryProps) {
-  const [queryType, setQueryType] = useState<'student' | 'course'>('student')
+export default function ScoreQuery({ onSearch, queryType, onQueryTypeChange }: ScoreQueryProps) {
   const [queryValue, setQueryValue] = useState('')
   const [error, setError] = useState('')
 
@@ -16,19 +17,16 @@ export default function ScoreQuery({ onSearch }: ScoreQueryProps) {
     e.preventDefault()
     setError('')
 
-    // 输入验证
     if (!queryValue.trim()) {
       setError(queryType === 'student' ? '请输入学号' : '请输入课程编号')
       return
     }
 
-    // 学号格式验证 (6位数字)
     if (queryType === 'student' && !/^\d{7}$/.test(queryValue)) {
       setError('请输入正确的7位学号')
       return
     }
 
-    // 课程编号格式验证 (假设课程编号为CS开头加3位数字)
     if (queryType === 'course' && !/^CS\d{3}$/.test(queryValue)) {
       setError('请输入正确的课程编号（如：CS001）')
       return
@@ -39,39 +37,32 @@ export default function ScoreQuery({ onSearch }: ScoreQueryProps) {
 
   return (
     <div className={styles.queryContainer}>
-      <h2 className={styles.queryTitle}>成绩查询</h2>
-      <form className={styles.queryForm} onSubmit={handleSubmit}>
-        <div className={styles.queryType}>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              value="student"
-              checked={queryType === 'student'}
-              onChange={(e) => {
-                setQueryType(e.target.value as 'student' | 'course')
-                setQueryValue('')
-                setError('')
-              }}
-              className={styles.radioInput}
-            />
-            <span>按学号查询</span>
-          </label>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              value="course"
-              checked={queryType === 'course'}
-              onChange={(e) => {
-                setQueryType(e.target.value as 'student' | 'course')
-                setQueryValue('')
-                setError('')
-              }}
-              className={styles.radioInput}
-            />
-            <span>按课程编号查询</span>
-          </label>
-        </div>
+      <div className={styles.queryTypeSelector}>
+        <button
+          className={`${styles.typeButton} ${queryType === 'student' ? styles.active : ''}`}
+          onClick={() => {
+            onQueryTypeChange('student')
+            setQueryValue('')
+            setError('')
+          }}
+        >
+          <span className={styles.icon}>👨‍🎓</span>
+          按学号查询
+        </button>
+        <button
+          className={`${styles.typeButton} ${queryType === 'course' ? styles.active : ''}`}
+          onClick={() => {
+            onQueryTypeChange('course')
+            setQueryValue('')
+            setError('')
+          }}
+        >
+          <span className={styles.icon}>📚</span>
+          按课程查询
+        </button>
+      </div>
 
+      <form className={styles.queryForm} onSubmit={handleSubmit}>
         <div className={styles.inputGroup}>
           <input
             type="text"
@@ -88,7 +79,7 @@ export default function ScoreQuery({ onSearch }: ScoreQueryProps) {
           </button>
         </div>
 
-        {error && <div className={styles.error} style={{color: 'red'}}>{error}</div>}
+        {error && <div className={styles.error}>{error}</div>}
       </form>
     </div>
   )
