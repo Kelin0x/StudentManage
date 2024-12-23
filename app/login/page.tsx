@@ -79,9 +79,7 @@ export default function Login() {
 
       <div className={styles.login_loginContainer}>
         <div className={styles.login_loginCard}>
-          <h1>成绩管理系统</h1>
-          <p className={styles.login_subtitle}>连接教育，共创未来</p>
-          
+          <h1>成绩管理系统</h1>          
           <form onSubmit={handleSubmit} className={styles.login_loginForm}>
             <div className={styles.login_inputGroup}>
               <label htmlFor="username">用户名</label>
