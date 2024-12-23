@@ -211,16 +211,116 @@ WHERE username = ?;
 
 ```
 
-数据完整性保护
-使用外键约束确保成绩关联的学生和课程真实存在
-联合唯一索引防止重复录入成绩
-自动记录创建和更新时间
-权限控制
-基于RBAC模型实现三级权限控制
-学生只能查看自己的成绩
-教师可查看所有学生成绩
-管理员拥有最高权限
-查询优化
-建立了适当的索引提高查询效率
-使用参数化查询防止SQL注入
-实现了统计功能便于数据分析
+```
+DELIMITER //
+
+-- 成绩变更后自动更新及格率
+CREATE TRIGGER after_score_change_passrate
+AFTER INSERT ON Score
+FOR EACH ROW
+BEGIN
+    -- 1. 更新学生及格率
+    INSERT INTO GradePassRate (
+        targetId,
+        targetName,
+        targetType,
+        totalCount,
+        passCount,
+        failCount,
+        passRate,
+        averageScore,
+        semester
+    )
+    SELECT 
+        s.studentId,
+        s.name,
+        'STUDENT',
+        COUNT(*),
+        SUM(CASE WHEN sc.score >= 60 THEN 1 ELSE 0 END),
+        SUM(CASE WHEN sc.score < 60 THEN 1 ELSE 0 END),
+        (SUM(CASE WHEN sc.score >= 60 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)),
+        AVG(sc.score),
+        CONCAT(YEAR(CURRENT_DATE), '-', CASE WHEN MONTH(CURRENT_DATE) <= 7 THEN '春' ELSE '秋' END)
+    FROM Score sc
+    JOIN Student s ON sc.studentId = s.studentId
+    WHERE sc.studentId = NEW.studentId
+    GROUP BY s.studentId, s.name
+    ON DUPLICATE KEY UPDATE
+        totalCount = VALUES(totalCount),
+        passCount = VALUES(passCount),
+        failCount = VALUES(failCount),
+        passRate = VALUES(passRate),
+        averageScore = VALUES(averageScore),
+        updatedAt = CURRENT_TIMESTAMP(3);
+
+    -- 2. 更新课程及格率
+    INSERT INTO GradePassRate (
+        targetId,
+        targetName,
+        targetType,
+        totalCount,
+        passCount,
+        failCount,
+        passRate,
+        averageScore,
+        semester
+    )
+    SELECT 
+        c.courseId,
+        c.courseName,
+        'COURSE',
+        COUNT(*),
+        SUM(CASE WHEN sc.score >= 60 THEN 1 ELSE 0 END),
+        SUM(CASE WHEN sc.score < 60 THEN 1 ELSE 0 END),
+        (SUM(CASE WHEN sc.score >= 60 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)),
+        AVG(sc.score),
+        CONCAT(YEAR(CURRENT_DATE), '-', CASE WHEN MONTH(CURRENT_DATE) <= 7 THEN '春' ELSE '秋' END)
+    FROM Score sc
+    JOIN Course c ON sc.courseId = c.courseId
+    WHERE sc.courseId = NEW.courseId
+    GROUP BY c.courseId, c.courseName
+    ON DUPLICATE KEY UPDATE
+        totalCount = VALUES(totalCount),
+        passCount = VALUES(passCount),
+        failCount = VALUES(failCount),
+        passRate = VALUES(passRate),
+        averageScore = VALUES(averageScore),
+        updatedAt = CURRENT_TIMESTAMP(3);
+
+    -- 3. 更新班级及格率
+    INSERT INTO GradePassRate (
+        targetId,
+        targetName,
+        targetType,
+        totalCount,
+        passCount,
+        failCount,
+        passRate,
+        averageScore,
+        semester
+    )
+    SELECT 
+        CONCAT(s.grade, '-', s.major),
+        CONCAT(s.grade, '级', s.major, '班'),
+        'CLASS',
+        COUNT(*),
+        SUM(CASE WHEN sc.score >= 60 THEN 1 ELSE 0 END),
+        SUM(CASE WHEN sc.score < 60 THEN 1 ELSE 0 END),
+        (SUM(CASE WHEN sc.score >= 60 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)),
+        AVG(sc.score),
+        CONCAT(YEAR(CURRENT_DATE), '-', CASE WHEN MONTH(CURRENT_DATE) <= 7 THEN '春' ELSE '秋' END)
+    FROM Score sc
+    JOIN Student s ON sc.studentId = s.studentId
+    WHERE s.studentId = NEW.studentId
+    GROUP BY s.grade, s.major
+    ON DUPLICATE KEY UPDATE
+        totalCount = VALUES(totalCount),
+        passCount = VALUES(passCount),
+        failCount = VALUES(failCount),
+        passRate = VALUES(passRate),
+        averageScore = VALUES(averageScore),
+        updatedAt = CURRENT_TIMESTAMP(3);
+END;//
+
+DELIMITER ;
+```
